@@ -1,7 +1,7 @@
 export interface Task {
   id: number;
   name: string;
-  category: string;
+  category: TaskCategory;
   priority: TaskPriority;
   dueDate: DueDate;
   assignedTo: string;
@@ -12,19 +12,26 @@ export interface Task {
 
 export type TaskStatus = 'Incompleted' | 'Completed';
 export type TaskPriority = 'Low' | 'Medium' | 'High';
-export type TaskFilter = 'all' | 'Pending' | 'In Progress' | 'Completed';
 export type DueDate = 'Overdue' | 'Today' | 'Upcoming' | 'No Due Date';
-export type TaskCategory= 'Frontend' |'Backend'| 'Meeting'| 'Design'
+export type TaskCategory = 'Frontend' | 'Backend' | 'Meeting' | 'Design';
 
 export interface Category {
   id: number;
   name: string;
 }
 
-export type TaskAction = 
-  | { type: 'ADD_TASK'; payload: Task }
-  | { type: 'EDIT_TASK'; payload: Task }
-  | { type: 'DELETE_TASK'; payload: number } 
-  | { type: 'UPDATE_TASK'; payload: Task }
-  | { type: 'UPDATE_TASK_STATUS'; payload: { id: number; status: TaskStatus } }
-  | { type: 'LOAD_TASKS'; payload: Task[] };
+export interface TaskAction {
+  type: string;
+  payload: any;
+}
+
+export const ACTIONS = {
+  ADD_TASK: 'add-task',
+  EDIT_TASK: 'edit-task',
+  DELETE_TASK: 'delete-task',
+  UPDATE_TASK: 'update-task',
+  UPDATE_TASK_STATUS: 'update-task-status',
+  LOAD_TASKS: 'load-tasks'
+} as const;
+
+export type ActionType = typeof ACTIONS[keyof typeof ACTIONS];

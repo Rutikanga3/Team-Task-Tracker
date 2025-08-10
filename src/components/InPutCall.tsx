@@ -1,9 +1,8 @@
-import React, { useState } from 'react'
-import { useTask } from '../hooks/useTask'
+import React, { useState } from 'react';
+import { useTask } from '../hooks/useTask';
 import InPut from './InPut';
-import type { TaskPriority, TaskStatus, DueDate } from '../types/Task';
+import { type TaskPriority, type TaskStatus, type DueDate, type TaskCategory, ACTIONS } from '../types/Task';
 import Button from './Button';
-
 
 interface InPutCallProps {
   isOpen: boolean;
@@ -12,13 +11,12 @@ interface InPutCallProps {
 
 interface TaskFormState {
   name: string;
-  category: string;
+  category: TaskCategory | '';
   priority: TaskPriority | '';
-  dueDate: DueDate | ''; // Changed to DueDate type
+  dueDate: DueDate | '';
   status: TaskStatus;
   assignedTo: string;
-  assignedOn?: string;
-
+  assignedOn: string;
   errors: {
     name?: string;
     category?: string;
@@ -31,16 +29,16 @@ interface TaskFormState {
 
 export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
   const { addTask } = useTask();
-  
+
   const [formState, setFormState] = useState<TaskFormState>({
     name: '',
     category: '',
     priority: '',
-    dueDate: '', // Default empty
-    status: 'Incompleted', // Default status
+    dueDate: '',
+    status: 'Incompleted',
     assignedTo: '',
+    assignedOn: new Date().toISOString().split('T')[0],
     errors: {},
-    assignedOn:'',
   });
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -57,14 +55,13 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
 
   const validateForm = (): boolean => {
     const errors: any = {};
-    
+
     if (!formState.name.trim()) errors.name = 'Task name is required';
-    if (!formState.category.trim()) errors.category = 'Category is required';
+    if (!formState.category) errors.category = 'Category is required';
     if (!formState.priority) errors.priority = 'Priority is required';
     if (!formState.dueDate) errors.dueDate = 'Due date is required';
     if (!formState.assignedTo.trim()) errors.assignedTo = 'Assigned to is required';
     if (!formState.assignedOn) errors.assignedOn = 'Assigned on is required';
-
 
     setFormState(prev => ({ ...prev, errors }));
     return Object.keys(errors).length === 0;
@@ -72,24 +69,32 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
-    const newTask = {
-      id: Date.now(),
+    addTask({
       name: formState.name,
-      category: formState.category,
+      category: formState.category as TaskCategory,
       priority: formState.priority as TaskPriority,
-      dueDate: formState.dueDate as DueDate, // Type assertion
-      status: formState.status,
+      dueDate: formState.dueDate as DueDate,
       assignedTo: formState.assignedTo,
-      updatedAt: new Date().toISOString(),
-      assignedOn: formState.assignedOn || ''
-    };
+      status: formState.status,
+      assignedOn: formState.assignedOn
+    });
 
-   
-    addTask(newTask);
-    handleClose();
+    // Reset form
+    setFormState({
+      name: '',
+      category: '',
+      priority: '',
+      dueDate: '',
+      status: 'Incompleted',
+      assignedTo: '',
+      assignedOn: new Date().toISOString().split('T')[0],
+      errors: {}
+    });
+
+    onClose();
   };
 
   const handleClose = () => {
@@ -100,32 +105,32 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
       dueDate: '',
       status: 'Incompleted',
       assignedTo: '',
-      assignedOn: '',
+      assignedOn: new Date().toISOString().split('T')[0],
       errors: {}
     });
     onClose();
   };
 
   if (!isOpen) return null;
-  
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-      <div className="p-4 bg-black dark:bg-white rounded-lg shadow-md max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50">
+      <div className="p-6 bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
-         <div>
-             <h2 className="text-xl font-semibold mb-4 text-black dark:text-black">Add New Task</h2>
-             <p>Fill in the details of your new task</p>
-         </div>
-          <button 
+          <div>
+            <h2 className="text-xl font-semibold mb-2 text-gray-800">Add New Task</h2>
+            <p className="text-gray-600 text-sm">Fill in the details of your new task</p>
+          </div>
+          <button
             onClick={handleClose}
-            className="text-black text-2xl hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 "
+            className="text-gray-400 hover:text-gray-600 text-2xl transition-colors"
           >
             ×
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <InPut 
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <InPut
             label="Task Name"
             name="name"
             placeholder="Enter task name"
@@ -133,65 +138,55 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
             onChange={handleInputChange}
           />
           {formState.errors.name && (
-            <p className="text-red-500 text-sm mb-2">{formState.errors.name}</p>
+            <p className="text-red-500 text-sm">{formState.errors.name}</p>
           )}
 
-          {/* <InPut 
-            label="Category"
-            name="category"
-            placeholder="Enter category"
-            value={formState.category}
-            onChange={handleInputChange}
-          />
-          {formState.errors.category && (
-            <p className="text-red-500 text-sm mb-2">{formState.errors.category}</p>
-          )} */}
-          <div className="mb-4">
-            <label className="block text-black font-normal mb-2">Category</label>
-            <select
-              name="priority"
-              value={formState.category}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
-            >
-              <option className='text-gray-400' value="">Select category</option>
-              <option value="High">Frontend</option>
-              <option value="Medium">Backend</option>
-              <option value="Low">Meeting</option>
-              <option value="Low">Design</option>
-            </select>
-            {formState.errors.priority && (
-              <p className="text-red-500 text-sm mt-1">{formState.errors.category}</p>
-            )}
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-black font-normal mb-2">Priority</label>
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Priority</label>
             <select
               name="priority"
               value={formState.priority}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option className='text-gray-400' value="">Select priority</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
+              <option value="">Select priority</option>
               <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
             </select>
             {formState.errors.priority && (
               <p className="text-red-500 text-sm mt-1">{formState.errors.priority}</p>
             )}
           </div>
 
-          <div className="mb-4">
-            <label className="block text-black font-normal mb-2">Due Date</label>
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Category</label>
+            <select
+              name="category"
+              value={formState.category}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select category</option>
+              <option value="Frontend">Frontend</option>
+              <option value="Backend">Backend</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Design">Design</option>
+            </select>
+            {formState.errors.category && (
+              <p className="text-red-500 text-sm mt-1">{formState.errors.category}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Due Date</label>
             <select
               name="dueDate"
               value={formState.dueDate}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option className='text-gray-400' value="">Select due date</option>
+              <option value="">Select due date</option>
               <option value="Overdue">Overdue</option>
               <option value="Today">Today</option>
               <option value="Upcoming">Upcoming</option>
@@ -202,21 +197,20 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
             )}
           </div>
 
-          <div className="mb-4">
-            <label className="block text-black font-status mb-2">Status</label>
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Status</label>
             <select
               name="status"
               value={formState.status}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-500"
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option className='text-gray-400'  value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
+              <option value="Incompleted">Incompleted</option>
               <option value="Completed">Completed</option>
             </select>
           </div>
 
-          <InPut 
+          <InPut
             label="Assigned To"
             name="assignedTo"
             placeholder="Enter assignee name"
@@ -224,28 +218,35 @@ export default function InPutCall({ isOpen, onClose }: InPutCallProps) {
             onChange={handleInputChange}
           />
           {formState.errors.assignedTo && (
-            <p className="text-red-500 text-sm mb-2">{formState.errors.assignedTo}</p>
+            <p className="text-red-500 text-sm">{formState.errors.assignedTo}</p>
           )}
 
-          <div className="flex gap-3 mt-4">
-            {/* <button 
-              type="submit"
-              className="flex-1 bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors"
-            >
-              Add Task
-            </button> */}
-            <Button
-            type='submit'
-             disabled={false}
-            label="Add Task"
-            className='bg-gray-500'
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">Assigned On</label>
+            <input
+              type="date"
+              name="assignedOn"
+              value={formState.assignedOn}
+              onChange={handleInputChange}
+              className="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
-            
+            {formState.errors.assignedOn && (
+              <p className="text-red-500 text-sm mt-1">{formState.errors.assignedOn}</p>
+            )}
+          </div>
+
+          <div className="flex gap-3 pt-4">
             <Button
-            type='button'
-            onClick={handleClose}
-            label='cancel'
-            className='bg-red-500'
+              type="submit"
+              disabled={false}
+              label="Add Task"
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+            />
+            <Button
+              type="button"
+              onClick={handleClose}
+              label="Cancel"
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white"
             />
           </div>
         </form>

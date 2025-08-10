@@ -1,30 +1,20 @@
 
-import { useState } from 'react';
+import React from 'react';
 import Button from './Button';
-import InPutCall from './InPutCall';
-import { TaskProvider } from '../context/TaskContext';
 
+interface NavbarProps {
+  onAddTask: () => void;
+}
 
-export default function Navbar() {
-    const [isInPutCallOpen, setIsInPutCallOpen]= useState(false)
+export default function Navbar({ onAddTask }: NavbarProps) {
   return (
-    <>
-    <TaskProvider>
-    <InPutCall isOpen={isInPutCallOpen} onClose={()=> setIsInPutCallOpen(false)}/>
-    </TaskProvider>
-    <div className="flex items-center justify-between px-6 py-4 bg-white shadow-md border-b-gray-50 mb-4 ">
-   
+    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white shadow-md border-b border-gray-200">
       <h2 className="text-xl font-bold text-gray-800">Team Task Tracker</h2>
-
-      
       <Button
         label="Add Task"
-        onClick={() => {
-            setIsInPutCallOpen(true)
-        }}
-        className="bg-black text-white hover:bg-gray-700 focus:ring-2 focus:ring-gray-300 focus:ring-offset-2 active:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed h-10 px-6 rounded-md transition-all"
+        onClick={onAddTask}
+        className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed h-10 px-6 rounded-md transition-all"
       />
     </div>
-    </>
   );
 }
