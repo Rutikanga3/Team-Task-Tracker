@@ -18,8 +18,6 @@ const Cards: React.FC<CardsProps> = ({ cardData }) => {
   };
 
   const handleEdit = () => {
-    // For now, we'll just toggle the editing state
-    // In a real app, this would open an edit modal or form
     setIsEditing(!isEditing);
     console.log('Edit button clicked for task:', cardData.id);
   };

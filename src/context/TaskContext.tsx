@@ -11,7 +11,7 @@ interface FilterState {
     assignedTo: string;
 }
 
-interface TaskContextType {
+export interface TaskContextType {
     tasks: Task[];
     filteredTasks: Task[];
     filters: FilterState;
